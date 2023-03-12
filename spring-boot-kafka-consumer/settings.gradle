@@ -1,0 +1,3 @@
+rootProject.name = 'spring-boot-kafka-consumer'
+include ":spring-boot-kafka-producer"
+project(":spring-boot-kafka-producer").projectDir = file("../spring-boot-kafka-producer")
