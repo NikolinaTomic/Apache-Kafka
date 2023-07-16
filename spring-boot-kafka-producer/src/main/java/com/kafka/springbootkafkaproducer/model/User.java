@@ -5,7 +5,8 @@ public class User {
     private String dept;
     private Long salary;
 
-    public User(){}
+    public User() {
+    }
 
     public User(String name, String dept, Long salary) {
         this.name = name;
