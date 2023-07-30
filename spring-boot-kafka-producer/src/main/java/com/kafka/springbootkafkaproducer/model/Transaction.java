@@ -23,17 +23,6 @@ public class Transaction {
     @CsvBindByPosition(position = 4)
     private String transactionDateTime;
 
-    public static List<UUID> setUUIDList() {
-        return Stream.generate(UUID::randomUUID)
-                .limit(100)
-                .collect(Collectors.toList());
-    }
-
-    public static BigDecimal generateRandomBigDecimalFromRange(BigDecimal min, BigDecimal max) {
-        BigDecimal randomBigDecimal = min.add(BigDecimal.valueOf(Math.random()).multiply(max.subtract(min)));
-        return randomBigDecimal.setScale(2, RoundingMode.HALF_UP);
-    }
-
     public Transaction(UUID uid, UUID fromAccount, UUID toAccount, BigDecimal amount, String transactionDateTime) {
         this.uid = uid;
         this.fromAccount = fromAccount;
@@ -55,6 +44,17 @@ public class Transaction {
         toAccount = randomToAccount;
         amount = generateRandomBigDecimalFromRange(BigDecimal.valueOf(100), BigDecimal.valueOf(1000000));
         transactionDateTime = LocalDateTime.now().toString();
+    }
+
+    public static List<UUID> setUUIDList() {
+        return Stream.generate(UUID::randomUUID)
+                .limit(100)
+                .collect(Collectors.toList());
+    }
+
+    public static BigDecimal generateRandomBigDecimalFromRange(BigDecimal min, BigDecimal max) {
+        BigDecimal randomBigDecimal = min.add(BigDecimal.valueOf(Math.random()).multiply(max.subtract(min)));
+        return randomBigDecimal.setScale(2, RoundingMode.HALF_UP);
     }
 
     public UUID getUid() {

@@ -1,7 +1,6 @@
 package com.kafka.springbootkafkaproducer.config;
 
-import com.kafka.springbootkafkaproducer.model.Transaction;
-import com.kafka.springbootkafkaproducer.model.User;
+import com.kafka.springbootkafkaproducer.model.TransactionEvent;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +17,7 @@ import java.util.Map;
 public class KafkaConfiguration {
 
     @Bean
-    public ProducerFactory<String, Transaction> producerFactory() {
+    public ProducerFactory<String, TransactionEvent> producerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -28,7 +27,7 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public KafkaTemplate<String, Transaction> kafkaTemplate() {
+    public KafkaTemplate<String, TransactionEvent> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 }
