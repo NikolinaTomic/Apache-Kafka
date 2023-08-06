@@ -11,10 +11,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,10 +27,12 @@ public class TransactionController {
     @Autowired
     TransactionEventProducer transactionEventProducer;
 
+    private final String filePath = "../../../Transactions.csv";
+
     @PostMapping
     public void sendTransactions() throws IOException {
         try (
-                Reader reader = new FileReader("../../../Transactions.csv")
+                Reader reader = new FileReader(filePath);
         ) {
             CsvToBean<Transaction> csvToBean = new CsvToBeanBuilder<Transaction>(reader)
                     .withType(Transaction.class)
@@ -46,43 +49,8 @@ public class TransactionController {
 
     @PostMapping("/generate")
     public void generateFile() throws IOException, CsvRequiredFieldEmptyException, CsvDataTypeMismatchException {
-        var list = Transaction.setUUIDList();
-        List<Transaction> transactions = new ArrayList<>();
-        int limit = 5;
-        int i = 0;
-        while (i < limit) {
-            var transaction = new Transaction(list);
-            transactions.add(transaction);
-            i++;
-        }
-//
-//        try (FileWriter writer = new FileWriter("../../../Transactions.csv")) {
-//            String[] header = new String[]
-//                { "uid", "fromAccount", "toAccount", "amount", "transactionDateTime" };
-//            ColumnPositionMappingStrategy mappingStrategy = new ColumnPositionMappingStrategy();
-//            mappingStrategy.setType(Transaction.class);
-//            mappingStrategy.setColumnMapping(header);
-//
-//            StatefulBeanToCsv<Transaction> beanToCsv = new StatefulBeanToCsvBuilder<Transaction>(writer)
-//                    .withMappingStrategy(mappingStrategy)
-//                    .withSeparator('#')
-//                    .withQuotechar(CSVWriter.NO_QUOTE_CHARACTER)
-//                    .build();
-//
-//            // todo: getting empty csv file. why? currently debugging.
-//            beanToCsv.write(transactions);
-//            for (Transaction x : transactions) {
-//                System.out.println(x.getUid().toString());
-//            }
-//        } catch (CsvRequiredFieldEmptyException e) {
-//            e.printStackTrace();
-//        } catch (CsvDataTypeMismatchException e) {
-//            e.printStackTrace();
-//        }
-
-
-        ////////////////////////////2. naci
-        FileWriter writer = new FileWriter("../../../Transactions.csv");
+        var file = Paths.get(filePath);
+        OpenOption openOption = StandardOpenOption.CREATE;
         ColumnPositionMappingStrategy mappingStrategy =
                 new ColumnPositionMappingStrategy();
         mappingStrategy.setType(Transaction.class);
@@ -90,16 +58,34 @@ public class TransactionController {
                 {"uid", "fromAccount", "toAccount", "amount", "transactionDateTime"};
         mappingStrategy.setColumnMapping(columns);
 
-        // Creating StatefulBeanToCsv object
-        StatefulBeanToCsvBuilder<Transaction> builder =
-                new StatefulBeanToCsvBuilder(writer);
-        StatefulBeanToCsv beanWriter =
-                builder.withMappingStrategy(mappingStrategy).build();
+        var list = Transaction.setUUIDList();
+        int jlimit = 10000;
+        int j = 0;
+        while (j < jlimit) {
+            List<Transaction> transactions = new ArrayList<>();
+            int limit = 1000;
+            int i = 0;
+            while (i < limit) {
+                var transaction = new Transaction(list);
+                transactions.add(transaction);
+                i++;
+            }
 
-        // Write list to StatefulBeanToCsv object
-        beanWriter.write(transactions);
+            if (Files.exists(file)) {
+                openOption = StandardOpenOption.APPEND;
+            }
+            Writer writer = Files.newBufferedWriter(file, openOption);
 
+            // Creating StatefulBeanToCsv object
+            StatefulBeanToCsvBuilder<Transaction> builder =
+                    new StatefulBeanToCsvBuilder(writer);
+            StatefulBeanToCsv beanWriter =
+                    builder.withMappingStrategy(mappingStrategy).build();
+            // Write list to StatefulBeanToCsv object
+            beanWriter.write(transactions);
+            writer.close();
+            j++;
+        }
         // closing the writer object
-        writer.close();
     }
 }
