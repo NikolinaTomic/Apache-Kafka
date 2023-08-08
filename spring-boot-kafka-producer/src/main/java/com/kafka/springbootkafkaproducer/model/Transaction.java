@@ -1,6 +1,10 @@
 package com.kafka.springbootkafkaproducer.model;
 
 import com.opencsv.bean.CsvBindByPosition;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -11,6 +15,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Transaction {
     @CsvBindByPosition(position = 0)
     private UUID uid;
@@ -22,17 +30,6 @@ public class Transaction {
     private BigDecimal amount;
     @CsvBindByPosition(position = 4)
     private String transactionDateTime;
-
-    public Transaction(UUID uid, UUID fromAccount, UUID toAccount, BigDecimal amount, String transactionDateTime) {
-        this.uid = uid;
-        this.fromAccount = fromAccount;
-        this.toAccount = toAccount;
-        this.amount = amount;
-        this.transactionDateTime = transactionDateTime;
-    }
-
-    public Transaction() {
-    }
 
     public Transaction(List<UUID> uuidList) {
         Random random = new Random();
@@ -55,45 +52,5 @@ public class Transaction {
     public static BigDecimal generateRandomBigDecimalFromRange(BigDecimal min, BigDecimal max) {
         BigDecimal randomBigDecimal = min.add(BigDecimal.valueOf(Math.random()).multiply(max.subtract(min)));
         return randomBigDecimal.setScale(2, RoundingMode.HALF_UP);
-    }
-
-    public UUID getUid() {
-        return uid;
-    }
-
-    public void setUid(UUID uid) {
-        this.uid = uid;
-    }
-
-    public UUID getFromAccount() {
-        return fromAccount;
-    }
-
-    public void setFromAccount(UUID fromAccount) {
-        this.fromAccount = fromAccount;
-    }
-
-    public UUID getToAccount() {
-        return toAccount;
-    }
-
-    public void setToAccount(UUID toAccount) {
-        this.toAccount = toAccount;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getTransactionDateTime() {
-        return transactionDateTime;
-    }
-
-    public void setTransactionDateTime(String transactionDateTime) {
-        this.transactionDateTime = transactionDateTime;
     }
 }

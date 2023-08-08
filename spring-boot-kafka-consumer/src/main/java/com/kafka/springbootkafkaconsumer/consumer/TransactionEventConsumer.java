@@ -1,6 +1,7 @@
 package com.kafka.springbootkafkaconsumer.consumer;
 
-import com.kafka.springbootkafkaproducer.model.TransactionEvent;
+import com.kafka.springbootkafkaproducer.model.UserTransactionEvent;
+import com.kafka.springbootkafkaproducer.model.UserType;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -19,32 +20,33 @@ public class TransactionEventConsumer {
     private Instant end;
 
     @KafkaListener(topics = "transaction-amount-topic", groupId = "group_json",
-            containerFactory = "transactionKafkaListenerFactory")
-    public void consume(TransactionEvent event) {
+            containerFactory = "userTransactionKafkaListenerFactory")
+    public void consume(UserTransactionEvent event) {
         if (counter == 0) {
             start = Instant.now();
         }
         counter++;
 
-        var amount = event.getTransaction().getAmount();
-        var sender = event.getTransaction().getFromAccount();
-        if (transactionsEventHashMap.containsKey(sender)) {
-            var value = transactionsEventHashMap.get(sender);
-            value = value.subtract(amount);
-            transactionsEventHashMap.put(sender, value);
+        var amount = event.getUserTransaction().getAmount();
+        var userType = event.getUserTransaction().getUserType();
+        var account = event.getUserTransaction().getAccount();
+        if (transactionsEventHashMap.containsKey(account)) {
+            var value = transactionsEventHashMap.get(account);
+            if (userType.equals(UserType.SENDER)) {
+                value = value.subtract(amount);
+            } else {
+                value = value.add(amount);
+            }
+            transactionsEventHashMap.put(account, value);
         } else {
-            transactionsEventHashMap.put(sender, amount.negate());
-        }
-        var receiver = event.getTransaction().getToAccount();
-        if (transactionsEventHashMap.containsKey(receiver)) {
-            var value = transactionsEventHashMap.get(receiver);
-            value = value.add(amount);
-            transactionsEventHashMap.put(receiver, value);
-        } else {
-            transactionsEventHashMap.put(receiver, amount);
+            if (userType.equals(UserType.SENDER)) {
+                transactionsEventHashMap.put(account, amount.negate());
+            } else {
+                transactionsEventHashMap.put(account, amount);
+            }
         }
 
-        if (counter % 10000 == 0) {
+        if (counter % 1000000 == 0) {
             end = Instant.now();
             System.out.println("Num: " + counter);
             System.out.println("Elapsed time seconds: " + Duration.between(start, end).toSeconds());

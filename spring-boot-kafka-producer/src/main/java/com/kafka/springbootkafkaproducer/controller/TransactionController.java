@@ -1,6 +1,9 @@
 package com.kafka.springbootkafkaproducer.controller;
 
 import com.kafka.springbootkafkaproducer.model.Transaction;
+import com.kafka.springbootkafkaproducer.model.UserTransaction;
+import com.kafka.springbootkafkaproducer.model.UserTransactionEvent;
+import com.kafka.springbootkafkaproducer.model.UserType;
 import com.kafka.springbootkafkaproducer.producer.TransactionEventProducer;
 import com.kafka.springbootkafkaproducer.worker.CSVWorker;
 import com.opencsv.CSVReader;
@@ -19,12 +22,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.*;
 
 @RestController
@@ -74,9 +79,39 @@ public class TransactionController {
 //                new CSVReaderBuilder(new FileReader(filePath)).build();
 //        var fields = reader.readNext();
 //        while (fields != null) {
-//            var transaction = new Transaction(UUID.fromString(fields[0]),
-//                    UUID.fromString(fields[1]), UUID.fromString(fields[2]), new BigDecimal(fields[3]), fields[4]);
-//            transactionEventProducer.send(new TransactionEvent(UUID.randomUUID(), transaction));
+//            var transaction = Transaction.builder()
+//                    .uid(UUID.fromString(fields[0]))
+//                    .fromAccount(UUID.fromString(fields[1]))
+//                    .toAccount(UUID.fromString(fields[2]))
+//                    .amount(new BigDecimal(fields[3]))
+//                    .transactionDateTime(fields[4])
+//                    .build();
+//
+//            // Double entry
+//            var buyerUserTransaction = UserTransaction.builder()
+//                    .uid(transaction.getUid())
+//                    .userType(UserType.RECIPIENT)
+//                    .account(transaction.getToAccount())
+//                    .amount(transaction.getAmount())
+//                    .build();
+//            transactionEventProducer.send(
+//                    UserTransactionEvent.builder()
+//                            .eventUid(UUID.randomUUID())
+//                            .userTransaction(buyerUserTransaction)
+//                            .build());
+//
+//            var sellerUserTransaction = UserTransaction.builder()
+//                    .uid(transaction.getUid())
+//                    .userType(UserType.SENDER)
+//                    .account(transaction.getFromAccount())
+//                    .amount(transaction.getAmount())
+//                    .build();
+//            transactionEventProducer.send(
+//                    UserTransactionEvent.builder()
+//                            .eventUid(UUID.randomUUID())
+//                            .userTransaction(sellerUserTransaction)
+//                            .build());
+//
 //            fields = reader.readNext();
 //        }
     }

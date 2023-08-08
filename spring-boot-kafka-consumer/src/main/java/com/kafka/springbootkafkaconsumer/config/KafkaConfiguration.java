@@ -1,6 +1,6 @@
 package com.kafka.springbootkafkaconsumer.config;
 
-import com.kafka.springbootkafkaproducer.model.TransactionEvent;
+import com.kafka.springbootkafkaproducer.model.UserTransactionEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class KafkaConfiguration {
 
     @Bean
-    public ConsumerFactory<String, TransactionEvent> transactionConsumerFactory() {
+    public ConsumerFactory<String, UserTransactionEvent> userTransactionConsumerFactory() {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
@@ -27,17 +27,17 @@ public class KafkaConfiguration {
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
-        JsonDeserializer deserializer = new JsonDeserializer<>(TransactionEvent.class);
-        deserializer.addTrustedPackages("com.kafka.springbootkafkaproducer.model.TransactionEvent");
+        JsonDeserializer deserializer = new JsonDeserializer<>(UserTransactionEvent.class);
+        deserializer.addTrustedPackages("com.kafka.springbootkafkaproducer.model.UserTransactionEvent");
 
         return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(),
                 deserializer);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, TransactionEvent> transactionKafkaListenerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, TransactionEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(transactionConsumerFactory());
+    public ConcurrentKafkaListenerContainerFactory<String, UserTransactionEvent> userTransactionKafkaListenerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, UserTransactionEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(userTransactionConsumerFactory());
         return factory;
     }
 }
