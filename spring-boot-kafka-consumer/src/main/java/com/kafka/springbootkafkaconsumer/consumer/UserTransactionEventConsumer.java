@@ -5,19 +5,24 @@ import com.kafka.springbootkafkaproducer.model.UserType;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class TransactionEventConsumer {
+public class UserTransactionEventConsumer {
 
     private final HashMap<UUID, BigDecimal> transactionsEventHashMap = new HashMap<>();
     private int counter = 0;
     private Instant start;
     private Instant end;
+    private final String filePath = "../../../KafkaTransactionsResult.csv";
 
     @KafkaListener(topics = "transaction-amount-topic", groupId = "group_json",
             containerFactory = "userTransactionKafkaListenerFactory")
@@ -46,13 +51,21 @@ public class TransactionEventConsumer {
             }
         }
 
-        if (counter % 1000000 == 0) {
+        if (counter % 40000000 == 0) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+                writer.write("AccountId,Amount");
+                writer.newLine();
+
+                for (Map.Entry<UUID, BigDecimal> entry : transactionsEventHashMap.entrySet()) {
+                    writer.write(entry.getKey() + "," + entry.getValue());
+                    writer.newLine();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
             end = Instant.now();
-            System.out.println("Num: " + counter);
-            System.out.println("Elapsed time seconds: " + Duration.between(start, end).toSeconds());
-            System.out.println("Elapsed time nanoseconds: " + Duration.between(start, end).toNanos());
-            System.out.println("==========================");
-            // write map to csv file after processing
+            System.out.println("Kafka application elapsed time in seconds: " + Duration.between(start, end).toSeconds());
         }
     }
 

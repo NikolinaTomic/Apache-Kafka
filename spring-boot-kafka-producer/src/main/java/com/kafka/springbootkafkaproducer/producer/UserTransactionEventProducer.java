@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 @Component
-public class TransactionEventProducer {
+public class UserTransactionEventProducer {
     private static final String TOPIC = "transaction-amount-topic";
     @Autowired
     KafkaTemplate<String, UserTransactionEvent> kafkaTemplate;

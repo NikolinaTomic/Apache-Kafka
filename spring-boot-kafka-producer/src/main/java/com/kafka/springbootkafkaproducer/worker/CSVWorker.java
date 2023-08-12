@@ -4,7 +4,7 @@ import com.kafka.springbootkafkaproducer.model.Transaction;
 import com.kafka.springbootkafkaproducer.model.UserTransaction;
 import com.kafka.springbootkafkaproducer.model.UserTransactionEvent;
 import com.kafka.springbootkafkaproducer.model.UserType;
-import com.kafka.springbootkafkaproducer.producer.TransactionEventProducer;
+import com.kafka.springbootkafkaproducer.producer.UserTransactionEventProducer;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -17,7 +17,7 @@ public class CSVWorker implements Runnable {
     private final BlockingQueue<String[]> queue;
 
     @Autowired
-    TransactionEventProducer transactionEventProducer;
+    UserTransactionEventProducer userTransactionEventProducer;
 
     @Override
     public void run() {
@@ -39,7 +39,7 @@ public class CSVWorker implements Runnable {
                         .account(transaction.getToAccount())
                         .amount(transaction.getAmount())
                         .build();
-                transactionEventProducer.send(
+                userTransactionEventProducer.send(
                         UserTransactionEvent.builder()
                                 .eventUid(UUID.randomUUID())
                                 .userTransaction(buyerUserTransaction)
@@ -51,7 +51,7 @@ public class CSVWorker implements Runnable {
                         .account(transaction.getFromAccount())
                         .amount(transaction.getAmount())
                         .build();
-                transactionEventProducer.send(
+                userTransactionEventProducer.send(
                         UserTransactionEvent.builder()
                                 .eventUid(UUID.randomUUID())
                                 .userTransaction(sellerUserTransaction)

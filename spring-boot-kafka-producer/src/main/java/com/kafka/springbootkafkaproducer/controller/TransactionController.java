@@ -4,8 +4,7 @@ import com.kafka.springbootkafkaproducer.model.Transaction;
 import com.kafka.springbootkafkaproducer.model.UserTransaction;
 import com.kafka.springbootkafkaproducer.model.UserTransactionEvent;
 import com.kafka.springbootkafkaproducer.model.UserType;
-import com.kafka.springbootkafkaproducer.producer.TransactionEventProducer;
-import com.kafka.springbootkafkaproducer.worker.CSVWorker;
+import com.kafka.springbootkafkaproducer.producer.UserTransactionEventProducer;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.bean.ColumnPositionMappingStrategy;
@@ -30,90 +29,89 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.*;
 
 @RestController
 @RequestMapping("transactions")
 public class TransactionController {
 
-    private final String filePath = "../../../Transactions.csv";
+    private final String filePath = "../../../TransactionsTest.csv";
     @Autowired
-    TransactionEventProducer transactionEventProducer;
+    UserTransactionEventProducer userTransactionEventProducer;
 
     @PostMapping
     public void sendTransactions() throws IOException, CsvValidationException, InterruptedException {
-        int numThreads = 2; // Number of worker threads
-
-        // Create a blocking queue to hold CSV data
-        BlockingQueue<String[]> queue = new LinkedBlockingQueue<>();
-
-        // Create and start worker threads
-        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-        for (int i = 0; i < numThreads; i++) {
-            executor.execute(new CSVWorker(queue, transactionEventProducer));
-        }
-
-        CSVReader reader =
-                new CSVReaderBuilder(new FileReader(filePath)).build();
-        String[] line;
-        // Read CSV file and add lines to the queue
-        while ((line = reader.readNext()) != null) {
-            queue.put(line);
-        }
-
-        // Signal worker threads to stop after queue is processed
-        executor.shutdown();
-        try {
-            // Wait for all tasks to complete or timeout after a certain duration
-            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                System.out.println("Forcing shutdown after timeout...");
-                executor.shutdownNow(); // Interrupt running threads
-            }
-        } catch (InterruptedException e) {
-            executor.shutdownNow(); // Re-interrupt the thread if it was interrupted
-        }
-        System.out.println("Main thread finished.");
-
-//                          One thread
+//        int numThreads = 2; // Number of worker threads
+//
+//        // Create a blocking queue to hold CSV data
+//        BlockingQueue<String[]> queue = new LinkedBlockingQueue<>();
+//
+//        // Create and start worker threads
+//        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+//        for (int i = 0; i < numThreads; i++) {
+//            executor.execute(new CSVWorker(queue, userTransactionEventProducer));
+//        }
+//
 //        CSVReader reader =
 //                new CSVReaderBuilder(new FileReader(filePath)).build();
-//        var fields = reader.readNext();
-//        while (fields != null) {
-//            var transaction = Transaction.builder()
-//                    .uid(UUID.fromString(fields[0]))
-//                    .fromAccount(UUID.fromString(fields[1]))
-//                    .toAccount(UUID.fromString(fields[2]))
-//                    .amount(new BigDecimal(fields[3]))
-//                    .transactionDateTime(fields[4])
-//                    .build();
-//
-//            // Double entry
-//            var buyerUserTransaction = UserTransaction.builder()
-//                    .uid(transaction.getUid())
-//                    .userType(UserType.RECIPIENT)
-//                    .account(transaction.getToAccount())
-//                    .amount(transaction.getAmount())
-//                    .build();
-//            transactionEventProducer.send(
-//                    UserTransactionEvent.builder()
-//                            .eventUid(UUID.randomUUID())
-//                            .userTransaction(buyerUserTransaction)
-//                            .build());
-//
-//            var sellerUserTransaction = UserTransaction.builder()
-//                    .uid(transaction.getUid())
-//                    .userType(UserType.SENDER)
-//                    .account(transaction.getFromAccount())
-//                    .amount(transaction.getAmount())
-//                    .build();
-//            transactionEventProducer.send(
-//                    UserTransactionEvent.builder()
-//                            .eventUid(UUID.randomUUID())
-//                            .userTransaction(sellerUserTransaction)
-//                            .build());
-//
-//            fields = reader.readNext();
+//        String[] line;
+//        // Read CSV file and add lines to the queue
+//        while ((line = reader.readNext()) != null) {
+//            queue.put(line);
 //        }
+//
+//        // Signal worker threads to stop after queue is processed
+//        executor.shutdown();
+//        try {
+//            // Wait for all tasks to complete or timeout after a certain duration
+//            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+//                System.out.println("Forcing shutdown after timeout...");
+//                executor.shutdownNow(); // Interrupt running threads
+//            }
+//        } catch (InterruptedException e) {
+//            executor.shutdownNow(); // Re-interrupt the thread if it was interrupted
+//        }
+//        System.out.println("Main thread finished.");
+
+//                          One thread
+        CSVReader reader =
+                new CSVReaderBuilder(new FileReader(filePath)).build();
+        var fields = reader.readNext();
+        while (fields != null) {
+            var transaction = Transaction.builder()
+                    .uid(UUID.fromString(fields[0]))
+                    .fromAccount(UUID.fromString(fields[1]))
+                    .toAccount(UUID.fromString(fields[2]))
+                    .amount(new BigDecimal(fields[3]))
+                    .transactionDateTime(fields[4])
+                    .build();
+
+            // Double entry accounting
+            var buyerUserTransaction = UserTransaction.builder()
+                    .uid(transaction.getUid())
+                    .userType(UserType.RECIPIENT)
+                    .account(transaction.getToAccount())
+                    .amount(transaction.getAmount())
+                    .build();
+            userTransactionEventProducer.send(
+                    UserTransactionEvent.builder()
+                            .eventUid(UUID.randomUUID())
+                            .userTransaction(buyerUserTransaction)
+                            .build());
+
+            var sellerUserTransaction = UserTransaction.builder()
+                    .uid(transaction.getUid())
+                    .userType(UserType.SENDER)
+                    .account(transaction.getFromAccount())
+                    .amount(transaction.getAmount())
+                    .build();
+            userTransactionEventProducer.send(
+                    UserTransactionEvent.builder()
+                            .eventUid(UUID.randomUUID())
+                            .userTransaction(sellerUserTransaction)
+                            .build());
+
+            fields = reader.readNext();
+        }
     }
 
     @PostMapping("/generate")
