@@ -13,6 +13,7 @@ How to stop project:
   docker-compose down
 
 Results:
+
 ![Kafka1000](https://github.com/NikolinaTomic/Apache-Kafka/assets/44821513/e86be91d-1427-46ca-99cd-40cfca0bdbad)
 ![Kafka10k](https://github.com/NikolinaTomic/Apache-Kafka/assets/44821513/9a726b24-5ab5-4a90-931a-0df93a9b82ef)
 ![Kafka100k](https://github.com/NikolinaTomic/Apache-Kafka/assets/44821513/1b71bfcf-a0e7-45e8-8872-456c772e27c1)
