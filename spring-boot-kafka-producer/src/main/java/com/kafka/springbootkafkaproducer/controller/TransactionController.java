@@ -40,39 +40,6 @@ public class TransactionController {
 
     @PostMapping
     public void sendTransactions() throws IOException, CsvValidationException, InterruptedException {
-//        int numThreads = 2; // Number of worker threads
-//
-//        // Create a blocking queue to hold CSV data
-//        BlockingQueue<String[]> queue = new LinkedBlockingQueue<>();
-//
-//        // Create and start worker threads
-//        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-//        for (int i = 0; i < numThreads; i++) {
-//            executor.execute(new CSVWorker(queue, userTransactionEventProducer));
-//        }
-//
-//        CSVReader reader =
-//                new CSVReaderBuilder(new FileReader(filePath)).build();
-//        String[] line;
-//        // Read CSV file and add lines to the queue
-//        while ((line = reader.readNext()) != null) {
-//            queue.put(line);
-//        }
-//
-//        // Signal worker threads to stop after queue is processed
-//        executor.shutdown();
-//        try {
-//            // Wait for all tasks to complete or timeout after a certain duration
-//            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-//                System.out.println("Forcing shutdown after timeout...");
-//                executor.shutdownNow(); // Interrupt running threads
-//            }
-//        } catch (InterruptedException e) {
-//            executor.shutdownNow(); // Re-interrupt the thread if it was interrupted
-//        }
-//        System.out.println("Main thread finished.");
-
-//                          One thread
         CSVReader reader =
                 new CSVReaderBuilder(new FileReader(filePath)).build();
         var fields = reader.readNext();
